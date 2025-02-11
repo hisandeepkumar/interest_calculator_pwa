@@ -1,7 +1,7 @@
 {
   "name": "Interest Calculator",
   "short_name": "InterestCalc",
-  "start_url": "./index.html",
+  "start_url": "/interest_calculator_pwa/index.html"
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",

@@ -1,23 +1,17 @@
 const CACHE_NAME = "interest-calculator-cache-v1";
 const urlsToCache = [
-  "index.html",
-  "styles.css",
-  "script.js",
-  "icons/icon-192x192.png",
-  "icons/icon-512x512.png"
+  "./index.html",
+  "./styles.css",
+  "./script.js",
+  "./icons/icon-192x192.png",
+  "./icons/icon-512x512.png",
+  "./manifest.json"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("interest-calculator-cache-v1").then((cache) => {
-      return cache.addAll([
-        "./index.html",
-        "./styles.css",
-        "./script.js",
-        "./icons/icon-192x192.png",
-        "./icons/icon-512x512.png",
-        "./manifest.json"
-      ]);
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
     })
   );
 });
@@ -27,7 +21,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
-          if (key !== "interest-calculator-cache-v1") {
+          if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })

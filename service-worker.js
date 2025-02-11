@@ -9,8 +9,29 @@ const urlsToCache = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
+    caches.open("interest-calculator-cache-v1").then((cache) => {
+      return cache.addAll([
+        "./index.html",
+        "./styles.css",
+        "./script.js",
+        "./icons/icon-192x192.png",
+        "./icons/icon-512x512.png",
+        "./manifest.json"
+      ]);
+    })
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(
+        keyList.map((key) => {
+          if (key !== "interest-calculator-cache-v1") {
+            return caches.delete(key);
+          }
+        })
+      );
     })
   );
 });

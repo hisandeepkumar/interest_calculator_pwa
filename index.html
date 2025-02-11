@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="./manifest.json">
+    <title>Interest Calculator</title>
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("./service-worker.js")
+                .then((registration) => {
+                    console.log("Service Worker registered with scope:", registration.scope);
+                })
+                .catch((error) => {
+                    console.error("Service Worker registration failed:", error);
+                });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2rem;
+        }
+        label {
+            font-size: 1.1rem;
+        }
+        input, select, button {
+            display: block;
+            margin: 15px auto;
+            width: 95%;
+            font-size: 1rem;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #6200ea;
+            color: #fff;
+            padding: 12px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        button:hover {
+            transform: scale(1.05);
+            background-color: #4500b5;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+        }
+        .radio-group label {
+            font-size: 1rem;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        #resultGraph {
+            margin: 20px auto;
+            max-width: 100%;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #121212;
+            color: #fff;
+        }
+
+        /* Glowing Animated Button */
+        .glowing-button {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            color: #fff;
+            background: linear-gradient(90deg, #ff8c00, #ff0080, #ff8c00);
+            border-radius: 8px;
+            padding: 12px 25px;
+            text-align: center;
+            cursor: pointer;
+            animation: glowing 2s infinite;
+            border: none;
+        }
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px #ff8c00; }
+            50% { box-shadow: 0 0 20px #ff0080; }
+            100% { box-shadow: 0 0 5px #ff8c00; }
+        }
+
+        /* Hide elements during print */
+        @media print {
+            .dark-mode-toggle,
+            #printPDF,
+            .glowing-button {
+                display: none !important;
+            }
+        }
+
+        /* Floating Dark Mode Toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            font-size: 24px;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ads Free Simple and Compound Interest Calculator</h1>
+        <p>Calculate your interest easily and visualize results in real-time.</p>
+
+        <!-- Floating Dark Mode Toggle Button -->
+        <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+            <span id="modeIcon">🌙</span>
+        </div>
+
+        <div class="radio-group">
+            <input type="radio" id="simple" name="interestType" value="simple" checked>
+            <label for="simple">Simple Interest</label>
+
+            <input type="radio" id="compound" name="interestType" value="compound">
+            <label for="compound">Compound Interest</label>
+        </div>
+
+        <form id="calculatorForm">
+            <label for="principal">Principal Amount (₹):</label>
+            <input type="number" id="principal" required>
+
+            <label for="dateFrom">From Date:</label>
+            <input type="date" id="dateFrom">
+
+            <label for="dateTo">To Date:</label>
+            <input type="date" id="dateTo">
+
+            <label for="rate">Annual Interest Rate (%):</label>
+            <input type="number" id="rate" step="0.01" required>
+
+            <label for="time">Time Period:</label>
+            <input type="number" id="time" placeholder="Enter time if dates are not selected">
+            <select id="timeUnit">
+                <option value="years">Years</option>
+                <option value="months">Months</option>
+            </select>
+
+            <label for="compoundFrequency">Compound Frequency:</label>
+            <select id="compoundFrequency">
+                <option value="1" selected>Annually</option>
+                <option value="2">Semi-Annually</option>
+                <option value="4">Quarterly</option>
+                <option value="12">Monthly</option>
+                <option value="52">Weekly</option>
+                <option value="365">Daily</option>
+            </select>
+
+            <button type="button" id="calculateButton">Calculate</button>
+        </form>
+
+        <div id="result">
+            <h2>Result:</h2>
+            <p id="output"></p>
+        </div>
+
+        <canvas id="resultGraph" width="400" height="400"></canvas>
+
+        <button id="printPDF" style="display: none;">Download PDF</button>
+        <a href="https://www.instagram.com/sandeep_yadav_._._" target="_blank" class="glowing-button">Follow Me on Instagram</a>
+    </div>
+
+    <script>
+        let chart;
+
+        // Toggle Dark Mode
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+            const modeIcon = document.getElementById("modeIcon");
+            if (document.body.classList.contains("dark-mode")) {
+                modeIcon.innerHTML = '🌞'; // Sun icon for dark mode
+            } else {
+                modeIcon.innerHTML = '🌙'; // Moon icon for light mode
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("calculatorForm");
+            const output = document.getElementById("output");
+            const graphCanvas = document.getElementById("resultGraph").getContext("2d");
+            const printPDFButton = document.getElementById("printPDF");
+            const dateFrom = document.getElementById("dateFrom");
+            const dateTo = document.getElementById("dateTo");
+            const timeInput = document.getElementById("time");
+
+            // Automatically calculate time from dates if both dates are selected
+            dateFrom.addEventListener("change", calculateTimeFromDates);
+            dateTo.addEventListener("change", calculateTimeFromDates);
+
+            function calculateTimeFromDates() {
+                const fromDate = new Date(dateFrom.value);
+                const toDate = new Date(dateTo.value);
+
+                if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+                    timeInput.disabled = false; // Enable manual input if dates are not selected
+                    return;
+                }
+
+                const timeDiff = Math.abs(toDate - fromDate);
+                const days = timeDiff / (1000 * 60 * 60 * 24);
+                const months = days / 30;
+                const years = days / 365;
+
+                timeInput.value = (document.getElementById("timeUnit").value === "months") ? months.toFixed(2) : years.toFixed(2);
+                timeInput.disabled = true; // Disable manual input when dates are selected
+            }
+
+            // Calculate Interest
+            document.getElementById("calculateButton").addEventListener("click", () => {
+                const principal = parseFloat(document.getElementById("principal").value);
+                const rate = parseFloat(document.getElementById("rate").value);
+                const time = parseFloat(timeInput.value);
+                const compoundFrequency = parseInt(document.getElementById("compoundFrequency").value);
+                const interestType = document.querySelector("input[name='interestType']:checked").value;
+
+                if (isNaN(principal) || isNaN(rate) || isNaN(time)) {
+                    output.textContent = "Please fill out all fields correctly.";
+                    return;
+                }
+
+                let interest, total;
+
+                if (interestType === "simple") {
+                    interest = principal * (rate / 100) * time;
+                    total = principal + interest;
+                } else {
+                    const ratePerPeriod = rate / 100 / compoundFrequency;
+                    const totalPeriods = time * compoundFrequency;
+                    total = principal * Math.pow((1 + ratePerPeriod), totalPeriods);
+                    interest = total - principal;
+                }
+
+                output.textContent = `Total Amount: ₹${total.toFixed(2)} (Interest: ₹${interest.toFixed(2)})`;
+
+                // Plot Pie Chart
+                if (chart) chart.destroy();
+                chart = new Chart(graphCanvas, {
+                    type: "pie",
+                    data: {
+                        labels: ["Principal", "Interest"],
+                        datasets: [{
+                            data: [principal, interest],
+                            backgroundColor: ["#6200ea", "#ff5722"],
+                        }],
+                    },
+                });
+
+                // Enable Print Button
+                printPDFButton.style.display = "block";
+                printPDFButton.addEventListener("click", () => {
+                    window.print();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

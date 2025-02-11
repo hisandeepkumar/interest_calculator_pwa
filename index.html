@@ -7,15 +7,13 @@
     <link rel="manifest" href="./manifest.json">
     <title>Interest Calculator</title>
     <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("./service-worker.js")
-                .then((registration) => {
-                    console.log("Service Worker registered with scope:", registration.scope);
-                })
-                .catch((error) => {
-                    console.error("Service Worker registration failed:", error);
-                });
-        }
+      
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+      .then((reg) => console.log("Service Worker Registered!", reg))
+      .catch((err) => console.log("Service Worker Registration Failed!", err));
+  }
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
